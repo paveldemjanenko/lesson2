@@ -1,5 +1,5 @@
 import express from 'express';
-import indexAction from '../controllers/HomeController';
+import indexAction from '../controllers/userController';
 
 const router = express.Router();
 
