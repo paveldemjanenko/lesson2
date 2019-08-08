@@ -25,7 +25,45 @@ const getProductById = async (req, res, next) => {
   }
 };
 
-export { indexAction, getProductById };
+const addNewProduct = async (req, res, next) => {
+  const { body } = req;
+  const {
+    title,
+    image,
+    description,
+    price,
+    amount,
+    category_id,
+    rate,
+    vote,
+    discount,
+    manufacturer_id,
+  } = body;
+
+  const sql = `insert into products set ?`;
+
+  try {
+    const data = await makeQuery(sql, {
+      title,
+      image,
+      description,
+      price,
+      amount,
+      category_id,
+      rate,
+      vote,
+      discount,
+      manufacturer_id,
+    });
+
+    res.status(201).send(data);
+  } catch (error) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export { indexAction, getProductById, addNewProduct };
+
 //
 // const getProductById = async (req, res, next) => {
 //   logger.log('info', `productCardRoute: ${JSON.stringify(req.params)}`);
