@@ -1,62 +1,53 @@
-import mysql from 'mysql';
 import AppError from '../errors/AppError';
-
-const logger = require('../utils/logger')('commentsController');
+import makeQuery from '../service/MysqlConnection';
 
 const indexAction = async (req, res, next) => {
-  logger.log('info', `userRoute: ${JSON.stringify(req.params)}`);
-
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from comments';
+    const data = await makeQuery(sql);
 
-    connection.connect();
-
-    connection.query('SELECT * from comments', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
 const getCommentById = async (req, res, next) => {
-  logger.log('info', `userRoute: ${JSON.stringify(req.params)}`);
-
-  const { commentId } = req.params;
+  const { commentsId } = req.params;
 
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from comments where id = ?';
+    const data = await makeQuery(sql, commentsId);
 
-    connection.connect();
-
-    connection.query('SELECT * from comments', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results[commentId]);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
-export { indexAction, getCommentById };
+const addNewComment = async (req, res, next) => {
+  const { body } = req;
+  const {
+    title,
+    text,
+    product_id,
+    user_id,
+  } = body;
+
+  const sql = `insert into comments set ?`;
+
+  try {
+    const data = await makeQuery(sql, {
+      title,
+      text,
+      product_id,
+      user_id,
+    });
+
+    res.status(201).send(data);
+  } catch (error) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export { indexAction, getCommentById, addNewComment };

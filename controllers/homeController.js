@@ -1,5 +1,5 @@
-import mysql from 'mysql';
 import AppError from '../errors/AppError';
+import makeQuery from '../service/MysqlConnection';
 
 const logger = require('../utils/logger')('homeController');
 
@@ -7,24 +7,10 @@ const indexAction = async (req, res, next) => {
   logger.log('info', `homeRoute: ${JSON.stringify(req.params)}`);
 
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from products';
+    const data = await makeQuery(sql);
 
-    connection.connect();
-
-    connection.query('SELECT * from products', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }

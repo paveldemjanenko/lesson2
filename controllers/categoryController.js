@@ -1,62 +1,51 @@
-import mysql from 'mysql';
 import AppError from '../errors/AppError';
-
-const logger = require('../utils/logger')('categoryController');
+import makeQuery from '../service/MysqlConnection';
 
 const indexAction = async (req, res, next) => {
-  logger.log('info', `categoryRoute: ${JSON.stringify(req.params)}`);
-
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from category';
+    const data = await makeQuery(sql);
 
-    connection.connect();
-
-    connection.query('SELECT * from category', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results);
-      }
-    });
+    res.json(data);
   } catch (err) {
-    next(new AppError(err.message, 400));
+    next(new AppError(err.meddage, 400));
   }
 };
 
 const getCategoryById = async (req, res, next) => {
-  logger.log('info', `categoryRoute: ${JSON.stringify(req.params)}`);
-
   const { categoryId } = req.params;
 
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from category where id = ?';
+    const data = await makeQuery(sql, categoryId);
 
-    connection.connect();
-
-    connection.query('SELECT * from category', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results[categoryId]);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
-export { indexAction, getCategoryById };
+const addNewCategory = async (req, res, next) => {
+  const { body } = req;
+  const {
+    title,
+    description,
+    category_id
+  } = body;
+
+  const sql = `insert into category set ?`;
+
+  try {
+    const data = await makeQuery(sql, {
+      title,
+      description,
+      category_id,
+    });
+
+    res.status(201).send(data);
+  } catch (err) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export { indexAction, getCategoryById, addNewCategory };

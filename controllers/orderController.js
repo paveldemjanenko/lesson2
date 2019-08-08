@@ -1,62 +1,49 @@
-import mysql from 'mysql';
 import AppError from '../errors/AppError';
-
-const logger = require('../utils/logger')('orderController');
+import makeQuery from '../service/MysqlConnection';
 
 const indexAction = async (req, res, next) => {
-  logger.log('info', `orderRoute: ${JSON.stringify(req.params)}`);
-
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from orders';
+    const data = await makeQuery(sql);
 
-    connection.connect();
-
-    connection.query('SELECT * from orders', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
 const getOrderById = async (req, res, next) => {
-  logger.log('info', `orderRoute: ${JSON.stringify(req.params)}`);
-
   const { orderId } = req.params;
 
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from orders where id = ?';
+    const data = await makeQuery(sql, orderId);
 
-    connection.connect();
-
-    connection.query('SELECT * from orders', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results[orderId]);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
-export { indexAction, getOrderById };
+const addNewOrder = async (req, res, next) => {
+  const { body } = req;
+  const {
+    sum,
+    user_id
+  } = body;
+
+  const sql = `insert into orders set ?`;
+
+  try {
+    const data = await makeQuery(sql, {
+      sum,
+      user_id,
+    });
+
+    res.status(201).send(data);
+  } catch (error) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export { indexAction, getOrderById, addNewOrder };

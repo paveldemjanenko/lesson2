@@ -1,62 +1,51 @@
-import mysql from 'mysql';
 import AppError from '../errors/AppError';
-
-const logger = require('../utils/logger')('manufacturerController');
+import makeQuery from '../service/MysqlConnection';
 
 const indexAction = async (req, res, next) => {
-  logger.log('info', `manufacturerRoute: ${JSON.stringify(req.params)}`);
-
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from manufacturer';
+    const data = await makeQuery(sql);
 
-    connection.connect();
-
-    connection.query('SELECT * from manufacturer', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
 const getManufacturerById = async (req, res, next) => {
-  logger.log('info', `manufacturerRoute: ${JSON.stringify(req.params)}`);
-
-  const { manufacturerId } = req.params;
+  const { productId } = req.params;
 
   try {
-    const connection = mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
+    const sql = 'select * from manufacturer where id = ?';
+    const data = await makeQuery(sql, productId);
 
-    connection.connect();
-
-    connection.query('SELECT * from manufacturer', null, (error, results, fields) => {
-      if (error) {
-        console.log(error);
-      }
-
-      if (results) {
-        res.json(results[manufacturerId]);
-      }
-    });
+    res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
-export { indexAction, getManufacturerById };
+const addNewManufacturer = async (req, res, next) => {
+  const { body } = req;
+  const {
+    title,
+    description,
+    image,
+  } = body;
+
+  const sql = `insert into manufacturer set ?`;
+
+  try {
+    const data = await makeQuery(sql, {
+      title,
+      description,
+      image,
+    });
+
+    res.status(201).send(data);
+  } catch (error) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export { indexAction, getManufacturerById, addNewManufacturer };

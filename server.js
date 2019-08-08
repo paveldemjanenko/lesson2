@@ -7,13 +7,11 @@ import categoryRoute from './routes/categoryRoute';
 import commentsRoute from './routes/commentsRoute';
 import manufacturerRoute from './routes/manufacturerRoute';
 import orderRoute from './routes/orderRoute';
-import productCardRoute from './routes/productCardRoute';
+import productsRoute from './routes/productsRoute';
 import homeRoute from './routes/homeRoute';
 import defaultErrorHandler from './middlewares/defaultErrorHandler';
 
 const logger = require('./utils/logger')(process.env.APP_NAME);
-
-// console.log(process.env.USER_NAME);
 
 const app = express();
 app.use(bodyParser.json());
@@ -25,7 +23,7 @@ app.use('/categories', categoryRoute); // location of the link on browser
 app.use('/comments', commentsRoute);
 app.use('/manufacturers', manufacturerRoute);
 app.use('/orders', orderRoute);
-app.use('/products', productCardRoute);
+app.use('/products', productsRoute);
 app.use('/', homeRoute);
 
 app.use(defaultErrorHandler);
