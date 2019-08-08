@@ -8,6 +8,7 @@ import commentsRoute from './routes/commentsRoute';
 import manufacturerRoute from './routes/manufacturerRoute';
 import orderRoute from './routes/orderRoute';
 import productCardRoute from './routes/productCardRoute';
+import homeRoute from './routes/homeRoute';
 import defaultErrorHandler from './middlewares/defaultErrorHandler';
 
 const logger = require('./utils/logger')(process.env.APP_NAME);
@@ -19,13 +20,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(`/api/v${process.env.API_VERSION}`, healthCheck);
-app.use('/', userRoute);
-app.use('/', categoryRoute);
-app.use('/', commentsRoute);
-app.use('/', manufacturerRoute);
-app.use('/', orderRoute);
-app.use('/', productCardRoute);
-
+app.use('/users', userRoute);
+app.use('/categories', categoryRoute); // location of the link on browser
+app.use('/comments', commentsRoute);
+app.use('/manufacturers', manufacturerRoute);
+app.use('/orders', orderRoute);
+app.use('/products', productCardRoute);
+app.use('/', homeRoute);
 
 app.use(defaultErrorHandler);
 
