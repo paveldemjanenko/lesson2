@@ -1,6 +1,11 @@
 import AppError from '../errors/AppError';
 import makeQuery from '../service/MysqlConnection';
 
+const getProductFromDB = productId => {
+  const sql = 'select * from products where id = ?';
+  return makeQuery(sql, productId);
+};
+
 const indexAction = async (req, res, next) => {
   try {
     const sql = 'select * from products';
@@ -16,16 +21,29 @@ const getProductById = async (req, res, next) => {
   const { productId } = req.params;
 
   try {
-    const sql = 'select * from products where id = ?';
-    const data = await makeQuery(sql, productId);
-
+    const data = await getProductFromDB(productId);
+    // const sql = 'select * from products where id = ?';
+    // const data = await makeQuery(sql, productId);
+    if (data.length === 0) {
+      res.status(404).send('Page not found');
+      return;
+    }
     res.json(data);
   } catch (err) {
     next(new AppError(err.message, 400));
   }
 };
 
-const addNewProduct = async (req, res, next) => {
+const modifyProduct = async (req, res, next) => {
+  const { productId } = req.params;
+  if (productId) {
+    const data = await getProductFromDB(productId);
+    if (data.length === 0) {
+      res.status(404).send('Product not found');
+      return;
+    }
+  }
+
   const { body } = req;
   const {
     title,
@@ -40,21 +58,33 @@ const addNewProduct = async (req, res, next) => {
     manufacturer_id,
   } = body;
 
-  const sql = `insert into products set ?`;
+  const sql = `${!productId ? 'insert into' : 'update'} products set ? ${
+    !productId ? '' : 'where id = ?'
+  }`;
+
+  // let sql;
+  // if (productId) {
+  //   sql = `update products set ? where id = ?`;
+  // } else {
+  //   sql = `insert into product set ?`;
+  // }
 
   try {
-    const data = await makeQuery(sql, {
-      title,
-      image,
-      description,
-      price,
-      amount,
-      category_id,
-      rate,
-      vote,
-      discount,
-      manufacturer_id,
-    });
+    const data = await makeQuery(sql, [
+      {
+        title,
+        image,
+        description,
+        price,
+        amount,
+        category_id,
+        rate,
+        vote,
+        discount,
+        manufacturer_id,
+      },
+      productId,
+    ]);
 
     res.status(201).send(data);
   } catch (error) {
@@ -62,39 +92,25 @@ const addNewProduct = async (req, res, next) => {
   }
 };
 
-export { indexAction, getProductById, addNewProduct };
+const deleteProduct = async (req, res, next) => {
+  const {productId} = req.params;
 
-//
-// const getProductById = async (req, res, next) => {
-//   logger.log('info', `productCardRoute: ${JSON.stringify(req.params)}`);
-//
-//   // const productId = { "productId": req.params.productUd }; ES5 way
-//   const { productId } = req.params;
-//
-//   try {
-//     const connection = mysql.createConnection({
-//       host: process.env.DB_HOST,
-//       user: process.env.DB_USER,
-//       password: process.env.DB_PASS,
-//       database: process.env.DB_NAME,
-//     });
-//
-//     connection.connect();
-//
-//     connection.query('SELECT * from products where id = ?', productId, (error, results, fields) => {
-//       if (error) {
-//         console.log(error);
-//         res.status(500).send('Something wrong');
-//       }
-//
-//       if (results) {
-//         res.json(results);
-//       }
-//     });
-//
-//   } catch (err) {
-//     next(new AppError(err.message, 400));
-//   }
-// };
+  if (productId) {
+    const data = await getProductFromDB(productId);
 
-// export default indexAction;
+    if (data.length === 0) {
+      res.status(404).send('Product not found');
+      return;
+    }
+  }
+
+  const sql = `delete from products where id = ?`;
+  try {
+    const data = await makeQuery(sql, productId);
+    res.status(202).send(data);
+  } catch (error) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export { indexAction, getProductById, modifyProduct, deleteProduct };
