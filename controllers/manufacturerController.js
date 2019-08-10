@@ -1,6 +1,11 @@
 import AppError from '../errors/AppError';
 import makeQuery from '../service/MysqlConnection';
 
+const getManufacturerFromDB = manufacturerId => {
+  const sql = `select * from manufacturer where id = ?`;
+  return makeQuery(sql, manufacturerId);
+};
+
 const indexAction = async (req, res, next) => {
   try {
     const sql = 'select * from manufacturer';
@@ -13,11 +18,11 @@ const indexAction = async (req, res, next) => {
 };
 
 const getManufacturerById = async (req, res, next) => {
-  const { productId } = req.params;
+  const { manufacturerId } = req.params;
 
   try {
     const sql = 'select * from manufacturer where id = ?';
-    const data = await makeQuery(sql, productId);
+    const data = await makeQuery(sql, manufacturerId);
 
     res.json(data);
   } catch (err) {
@@ -25,22 +30,34 @@ const getManufacturerById = async (req, res, next) => {
   }
 };
 
-const addNewManufacturer = async (req, res, next) => {
-  const { body } = req;
-  const {
-    title,
-    description,
-    image,
-  } = body;
+const modifyManufacturer = async (req, res, next) => {
+  const { manufacturerId } = req.params;
 
-  const sql = `insert into manufacturer set ?`;
+  if (manufacturerId) {
+    const data = await getManufacturerFromDB(manufacturerId);
+
+    if (data.length === 0) {
+      res.status(404).send('Manufacturer not found');
+      return;
+    }
+  }
+
+  const { body } = req;
+  const { title, description, image } = body;
+
+  const sql = `${!manufacturerId ? 'insert into' : 'update'} manufacturer set ? ${
+    !manufacturerId ? '' : 'where id= ?'
+  }`;
 
   try {
-    const data = await makeQuery(sql, {
-      title,
-      description,
-      image,
-    });
+    const data = await makeQuery(sql, [
+      {
+        title,
+        description,
+        image,
+      },
+      manufacturerId,
+    ]);
 
     res.status(201).send(data);
   } catch (error) {
@@ -48,4 +65,25 @@ const addNewManufacturer = async (req, res, next) => {
   }
 };
 
-export { indexAction, getManufacturerById, addNewManufacturer };
+const deleteManufacturer = async (req, res, next) => {
+  const { manufacturerId } = req.params;
+
+  if (manufacturerId) {
+    const data = await getManufacturerFromDB(manufacturerId);
+
+    if (data.length === 0) {
+      res.status(404).send('Manufacturer not found');
+      return;
+    }
+  }
+
+  const sql = `delete from manufacturer where id = ?`;
+  try {
+    const data = await makeQuery(sql, manufacturerId);
+    res.status(202).send(data);
+  } catch (error) {
+    next(new AppError(error.message, 400));
+  }
+};
+
+export { indexAction, getManufacturerById, modifyManufacturer, deleteManufacturer };

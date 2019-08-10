@@ -14,9 +14,9 @@ const saveFile = async (req, res, next) => {
     ext = images.mimeType.split('/');
   }
 
-  const dateTostring = `${now.getDay()}_${now.getMonth()}_${now.getFullYear()}`;
+  const dateToString = `${now.getDay()}_${now.getMonth()}_${now.getFullYear()}`;
   images.mv(
-    `${__dirname}/../public/${body.entity}/img_${body.entityId}_${dateTostring}.${ext.pop()}`,
+    `${__dirname}/../public/${body.entity}/img_${body.entityId}_${dateToString}.${ext.pop()}`,
   );
   res.send(201);
 };

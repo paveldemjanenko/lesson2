@@ -93,7 +93,7 @@ const modifyProduct = async (req, res, next) => {
 };
 
 const deleteProduct = async (req, res, next) => {
-  const {productId} = req.params;
+  const { productId } = req.params;
 
   if (productId) {
     const data = await getProductFromDB(productId);
