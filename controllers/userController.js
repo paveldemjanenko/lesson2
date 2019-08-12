@@ -92,4 +92,14 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-export { indexAction, getUserById, modifyUser, deleteUser };
+const createUser = (req, res, next) => {
+  if (req.body.email !== req.body.emailConfirmation) {
+    next(new AppError('Email not the same', 400));
+  }
+
+  req.body.createdAt = new Date();
+
+  res.status(201).send(req.body);
+};
+
+export { indexAction, getUserById, deleteUser, createUser };

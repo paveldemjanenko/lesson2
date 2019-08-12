@@ -12,10 +12,14 @@ import productsRoute from './routes/productsRoute';
 import homeRoute from './routes/homeRoute';
 import fileRoute from './routes/fileRoute';
 import defaultErrorHandler from './middlewares/defaultErrorHandler';
+import cors from 'cors';
 
 const logger = require('./utils/logger')(process.env.APP_NAME);
 
 const app = express();
+
+app.use(cors());
+
 app.use(
   fileUpload({
     createParentPath: true,
